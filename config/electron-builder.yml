@@ -1,0 +1,43 @@
+# electron-builder configuration
+# https://www.electron.build/configuration/configuration
+
+appId: com.resumebuilder.app
+productName: Resume Builder
+copyright: Copyright © 2026 Resume Builder Contributors
+
+directories:
+  output: release
+  buildResources: assets
+
+files:
+  - dist/**/*
+  - package.json
+
+extraMetadata:
+  main: dist/main/index.js
+
+# Linux configuration
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Office
+
+# Windows configuration
+win:
+  target:
+    - nsis
+    - portable
+
+# macOS configuration
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.productivity
+
+# Auto-update configuration
+publish:
+  provider: github
+  releaseType: draft

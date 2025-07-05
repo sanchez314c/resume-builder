@@ -1,0 +1,210 @@
+/**
+ * Theme Variables — Neo-Noir Glass Monitor Design System
+ * Resume Builder Application
+ */
+
+:root {
+  /* === BACKGROUND LAYERS === */
+  --bg-void: #080b0f;
+  --bg-deep: #0d1117;
+  --bg-base: #111418;
+  --bg-surface: #161b22;
+  --bg-elevated: #1c2128;
+  --bg-overlay: #21262d;
+
+  /* === GLASS TREATMENT === */
+  --glass-bg: linear-gradient(135deg, rgba(22, 27, 34, 0.85) 0%, rgba(13, 17, 23, 0.75) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(28, 33, 40, 0.9) 0%, rgba(22, 27, 34, 0.8) 100%);
+  --glass-border: rgba(0, 210, 190, 0.18);
+  --glass-border-hover: rgba(0, 210, 190, 0.32);
+  --glass-highlight: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 40%);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.7), 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  /* === TEAL ACCENT (primary) === */
+  --teal-bright: #00d2be;
+  --teal-glow: #00e5cc;
+  --teal-muted: rgba(0, 210, 190, 0.12);
+  --teal-muted-hover: rgba(0, 210, 190, 0.2);
+  --teal-border: rgba(0, 210, 190, 0.35);
+  --teal-gradient: linear-gradient(135deg, #00d2be 0%, #00a896 100%);
+
+  /* === TEXT === */
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --text-teal: #00d2be;
+  --text-disabled: #3d444d;
+
+  /* === STATUS COLORS === */
+  --status-green: #3fb950;
+  --status-green-muted: rgba(63, 185, 80, 0.15);
+  --status-yellow: #d29922;
+  --status-yellow-muted: rgba(210, 153, 34, 0.15);
+  --status-red: #f85149;
+  --status-red-muted: rgba(248, 81, 73, 0.15);
+  --status-blue: #388bfd;
+  --status-blue-muted: rgba(56, 139, 253, 0.15);
+
+  /* === SIDEBAR === */
+  --sidebar-width: 260px;
+  --sidebar-bg: linear-gradient(180deg, #0d1117 0%, #080b0f 100%);
+  --sidebar-border: rgba(0, 210, 190, 0.12);
+  --sidebar-item-hover: rgba(255, 255, 255, 0.04);
+  --sidebar-item-active: rgba(0, 210, 190, 0.1);
+  --sidebar-item-active-text: #00d2be;
+
+  /* === TITLE BAR === */
+  --titlebar-height: 44px;
+  --titlebar-bg: linear-gradient(180deg, rgba(8, 11, 15, 0.95) 0%, rgba(13, 17, 23, 0.9) 100%);
+  --titlebar-border: rgba(0, 210, 190, 0.12);
+
+  /* === STATUS BAR === */
+  --statusbar-height: 28px;
+  --statusbar-bg: rgba(8, 11, 15, 0.9);
+  --statusbar-border: rgba(0, 210, 190, 0.1);
+
+  /* === SCROLLBAR === */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(0, 210, 190, 0.15);
+  --scrollbar-thumb-hover: rgba(0, 210, 190, 0.3);
+
+  /* === RADIUS === */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* === TRANSITIONS === */
+  --transition-fast: 120ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 350ms ease;
+
+  /* === TYPOGRAPHY === */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  /* === GRADIENT BACKGROUNDS === */
+  --gradient-bg: linear-gradient(135deg, #080b0f 0%, #0a0e14 40%, #080b0f 100%);
+  --gradient-sidebar: linear-gradient(180deg, #0d1117 0%, #080b0f 100%);
+  --gradient-card: linear-gradient(135deg, rgba(22, 27, 34, 0.85) 0%, rgba(13, 17, 23, 0.75) 100%);
+
+  /* === LEGACY ALIAS COMPATIBILITY (Tailwind / existing class references) === */
+  --color-background: #080b0f;
+  --color-background-secondary: #0d1117;
+  --color-background-content: #080b0f;
+  --color-surface: #161b22;
+  --color-surface-hover: #1c2128;
+  --color-surface-active: #21262d;
+  --color-surface-border: rgba(0, 210, 190, 0.18);
+
+  --color-border: rgba(0, 210, 190, 0.18);
+  --color-border-light: rgba(0, 210, 190, 0.08);
+  --color-border-focus: #00d2be;
+
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #484f58;
+  --color-text-disabled: #3d444d;
+
+  --color-accent: #00d2be;
+  --color-accent-hover: #00e5cc;
+  --color-accent-muted: rgba(0, 210, 190, 0.12);
+  --color-accent-light: #33dbc8;
+  --color-accent-dark: #007a6e;
+
+  --color-success: #3fb950;
+  --color-success-muted: rgba(63, 185, 80, 0.15);
+  --color-warning: #d29922;
+  --color-warning-muted: rgba(210, 153, 34, 0.15);
+  --color-error: #f85149;
+  --color-error-muted: rgba(248, 81, 73, 0.15);
+  --color-info: #388bfd;
+  --color-info-muted: rgba(56, 139, 253, 0.15);
+
+  --color-primary: #00d2be;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #161b22;
+  --color-secondary-foreground: #e6edf3;
+  --color-destructive: #f85149;
+  --color-destructive-foreground: #ffffff;
+
+  --color-card: #161b22;
+  --color-card-foreground: #e6edf3;
+  --color-popover: #1c2128;
+  --color-popover-foreground: #e6edf3;
+  --color-muted: #1c2128;
+  --color-muted-foreground: #8b949e;
+
+  --color-input: #0d1117;
+  --color-input-border: rgba(0, 210, 190, 0.18);
+  --color-input-focus: #00d2be;
+  --color-ring: #00d2be;
+  --color-focus-ring: rgba(0, 210, 190, 0.35);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.7), 0 8px 16px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(0, 210, 190, 0.3), 0 0 40px rgba(0, 210, 190, 0.1);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --glass-blur: blur(20px);
+  --glass-highlight-fallback: rgba(255, 255, 255, 0.05);
+
+  --header-height: 44px;
+  --header-bg: rgba(8, 11, 15, 0.95);
+  --header-border: rgba(0, 210, 190, 0.12);
+  --statusbar-bg: rgba(8, 11, 15, 0.9);
+  --statusbar-border: rgba(0, 210, 190, 0.1);
+  --color-scrollbar-track: transparent;
+  --color-scrollbar-thumb: rgba(0, 210, 190, 0.15);
+  --color-scrollbar-thumb-hover: rgba(0, 210, 190, 0.3);
+
+  --transition-base: 200ms ease;
+  --transition-fast: 120ms ease;
+  --transition-slow: 350ms ease;
+  --radius-full: 9999px;
+
+  /* Tailwind CSS variable mappings */
+  --background: #080b0f;
+  --foreground: #e6edf3;
+  --card: #161b22;
+  --card-foreground: #e6edf3;
+  --popover: #1c2128;
+  --popover-foreground: #e6edf3;
+  --primary: #00d2be;
+  --primary-foreground: #ffffff;
+  --secondary: #161b22;
+  --secondary-foreground: #e6edf3;
+  --muted: #1c2128;
+  --muted-foreground: #8b949e;
+  --accent: #00d2be;
+  --accent-foreground: #ffffff;
+  --destructive: #f85149;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 210, 190, 0.18);
+  --input: #0d1117;
+  --ring: #00d2be;
+  --success: #3fb950;
+  --warning: #d29922;
+  --error: #f85149;
+}
+
+/* Dark class */
+.dark {
+  color-scheme: dark;
+}
+
+/* Light theme override (minimal, app is dark-only) */
+.light {
+  --color-background: #f6f8fa;
+  --color-background-secondary: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f3f4f6;
+  --color-border: #d0d7de;
+  --color-text-primary: #1f2328;
+  --color-text-secondary: #656d76;
+}

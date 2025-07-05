@@ -1,0 +1,8 @@
+dist
+out
+coverage
+node_modules
+legacy
+*.min.js
+*.min.css
+package-lock.json

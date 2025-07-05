@@ -1,0 +1,72 @@
+# Conda Environment for Resume Builder NLP Sidecar
+#
+# This creates a fully self-contained environment with all dependencies.
+#
+# Usage:
+#   conda env create -f environment.yml
+#   conda activate resume-builder
+#
+# To update:
+#   conda env update -f environment.yml --prune
+
+name: resume-builder
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+
+dependencies:
+  # Python version
+  - python=3.11
+
+  # Core ML/Deep Learning
+  - pytorch>=2.1.0
+  - torchvision
+  - torchaudio
+  # Note: CUDA handled automatically by pytorch channel on supported systems
+
+  # NLP Libraries
+  - spacy>=3.7.0
+  - nltk>=3.8.0
+  - transformers>=4.36.0
+  - sentence-transformers>=2.2.0
+
+  # Data Processing
+  - numpy>=1.26.0
+  - pandas>=2.1.0
+  - scikit-learn>=1.3.0
+
+  # Topic Modeling
+  - hdbscan
+  - umap-learn
+
+  # API Server
+  - fastapi>=0.109.0
+  - uvicorn>=0.27.0
+  - pydantic>=2.5.0
+  - httpx>=0.26.0
+  - websockets
+
+  # Utilities
+  - python-dotenv>=1.0.0
+  - tqdm
+  - joblib
+
+  # Development
+  - pip
+
+  # Install remaining packages via pip
+  - pip:
+    # BERTopic (not on conda-forge)
+    - bertopic>=0.16.0
+
+    # Additional sentence-transformers deps
+    - huggingface-hub>=0.20.0
+
+    # Anthropic SDK for Claude API integration
+    - anthropic>=0.18.0
+
+# Post-install commands (run manually after environment creation):
+# python -m spacy download en_core_web_sm
+# python -m spacy download en_core_web_trf  # (optional, larger model)
+# python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords'); nltk.download('wordnet')"
