@@ -78,6 +78,20 @@ export const JobsPage: React.FC = () => {
   const [jobDescription, setJobDescription] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [hasResults, setHasResults] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyRecommendations = async () => {
+    const text = mockMatchResults.recommendations
+      .map((rec) => `[${rec.priority.toUpperCase()}] ${rec.message}`)
+      .join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard API unavailable — silently ignore
+    }
+  };
 
   const handleAnalyze = () => {
     if (!jobDescription.trim()) return;
@@ -329,9 +343,9 @@ We are looking for a Senior Full-Stack Developer with:
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full" onClick={handleCopyRecommendations}>
                     <Copy className="mr-2 h-4 w-4" />
-                    Copy Recommendations
+                    {copied ? 'Copied!' : 'Copy Recommendations'}
                   </Button>
                 </CardFooter>
               </Card>
@@ -347,7 +361,7 @@ We are looking for a Senior Full-Stack Developer with:
             <CardTitle>Saved Jobs</CardTitle>
             <CardDescription>Previously analyzed job descriptions</CardDescription>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" disabled title="Save job descriptions after running analysis">
             <Plus className="mr-2 h-4 w-4" />
             Add Job
           </Button>

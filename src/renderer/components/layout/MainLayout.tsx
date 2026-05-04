@@ -5,10 +5,11 @@
  * Floating glass panel with layered shadows + teal border glow.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { TitleBar } from './TitleBar';
 import { StatusBar } from './StatusBar';
+import { AboutModal } from './AboutModal';
 import { useAppStore } from '../../stores/app-store';
 import { Loader2 } from 'lucide-react';
 
@@ -18,6 +19,7 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isLoading, loadingMessage } = useAppStore();
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   return (
     <div
@@ -48,7 +50,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       />
 
       {/* Title Bar */}
-      <TitleBar />
+      <TitleBar onAboutClick={() => setAboutOpen(true)} />
+
+      {/* About Modal */}
+      <AboutModal isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
 
       {/* Body Row: Sidebar + Content */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>

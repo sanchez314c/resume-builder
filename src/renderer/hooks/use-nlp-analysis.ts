@@ -423,7 +423,10 @@ export function useNlpAnalysis(options: UseNlpAnalysisOptions = {}) {
   );
 
   /**
-   * Analyzes conversations from the current project
+   * Analyzes conversations from the current project.
+   * DEFERRED: AnalysisPage uses the `analyze()` path directly (reads parsed-conversations.json
+   * then calls analyze() with the message array). This function is a future convenience wrapper
+   * for callers that only have a project reference — not needed until a second call site exists.
    */
   const analyzeCurrentProject = useCallback(async (): Promise<AnalysisResult | null> => {
     if (!currentProject) {
@@ -433,9 +436,8 @@ export function useNlpAnalysis(options: UseNlpAnalysisOptions = {}) {
       return null;
     }
 
-    // For now, we'll need to re-read the files
-    // This will be improved when we have proper conversation storage
-    addStoreError('Project analysis not yet implemented - analyze individual conversations');
+    // Not yet wired — use analyze() with messages loaded from parsed-conversations.json instead.
+    addStoreError('analyzeCurrentProject not yet implemented — use analyze() directly');
     return null;
   }, [currentProject, addStoreError, onError]);
 

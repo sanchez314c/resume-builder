@@ -11,6 +11,40 @@ import * as path from 'path';
 import { Result, FileSelection } from '../common/types';
 
 // =============================================================================
+// Security: blocked system path prefixes
+// =============================================================================
+
+const BLOCKED_PATH_PREFIXES = [
+  '/etc/',
+  '/proc/',
+  '/sys/',
+  '/dev/',
+  '/run/',
+  '/boot/',
+  '/root/',
+  '/var/',
+  '/usr/',
+  '/bin/',
+  '/sbin/',
+  '/lib/',
+  '/lib64/',
+  '/snap/',
+] as const;
+
+/**
+ * Returns an error string if the resolved path is inside a blocked system directory,
+ * or null if the path is acceptable.
+ */
+function checkBlockedPath(resolvedPath: string): string | null {
+  for (const prefix of BLOCKED_PATH_PREFIXES) {
+    if (resolvedPath.startsWith(prefix)) {
+      return 'Access denied: restricted system path';
+    }
+  }
+  return null;
+}
+
+// =============================================================================
 // Types
 // =============================================================================
 
@@ -105,6 +139,13 @@ export async function readFile(filePath: string): Promise<Result<string>> {
       };
     }
 
+    // Block reads from sensitive system directories
+    const resolvedRead = path.resolve(filePath);
+    const blockedReadErr = checkBlockedPath(resolvedRead);
+    if (blockedReadErr) {
+      return { success: false, error: new Error(blockedReadErr) };
+    }
+
     // Check if file exists
     try {
       await fs.access(filePath, fs.constants.R_OK);
@@ -165,6 +206,10 @@ export async function saveFile(filePath: string, content: string): Promise<Resul
         error: new Error(`Path must be absolute: ${filePath}`),
       };
     }
+
+    // Block writes to system directories
+    const blockedWriteErr = checkBlockedPath(path.resolve(filePath));
+    if (blockedWriteErr) return { success: false, error: new Error(blockedWriteErr) };
 
     // Ensure directory exists
     const dir = path.dirname(filePath);
@@ -259,6 +304,12 @@ export async function copyFile(sourcePath: string, destPath: string): Promise<Re
       };
     }
 
+    // Block copies involving system directories
+    const srcBlocked = checkBlockedPath(path.resolve(sourcePath));
+    if (srcBlocked) return { success: false, error: new Error(srcBlocked) };
+    const dstBlocked = checkBlockedPath(path.resolve(destPath));
+    if (dstBlocked) return { success: false, error: new Error(dstBlocked) };
+
     // Ensure destination directory exists
     const destDir = path.dirname(destPath);
     await fs.mkdir(destDir, { recursive: true });
@@ -288,6 +339,9 @@ export async function ensureDir(dirPath: string): Promise<Result<string>> {
         error: new Error(`Path must be absolute: ${dirPath}`),
       };
     }
+
+    const blockedDirErr = checkBlockedPath(path.resolve(dirPath));
+    if (blockedDirErr) return { success: false, error: new Error(blockedDirErr) };
 
     await fs.mkdir(dirPath, { recursive: true });
 

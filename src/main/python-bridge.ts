@@ -442,14 +442,21 @@ export class PythonBridge extends EventEmitter {
 
   private startHealthCheck(): void {
     this.healthCheckTimer = setInterval(async () => {
-      if (!this.isRunning()) return;
+      if (this.isShuttingDown) return;
 
       const healthy = await this.healthCheck();
-      if (!healthy && !this.isShuttingDown) {
-        console.error('Health check failed, restarting...');
-        this.emit('crashed', null);
-        await this.stop();
-        await this.attemptRestart();
+      if (!healthy) {
+        if (this.process !== null) {
+          // We own the process — stop it and try to restart
+          console.error('Health check failed, restarting spawned sidecar...');
+          this.emit('crashed', null);
+          await this.stop();
+          await this.attemptRestart();
+        } else {
+          // External backend — emit error but do not attempt restart
+          console.error('External backend unreachable (health check failed)');
+          this.emit('error', new Error('External backend unreachable'));
+        }
       }
     }, this.config.healthCheckInterval);
   }

@@ -53,8 +53,8 @@ export const APP_INFO = {
   name: 'Resume Builder',
   version: '1.0.0',
   description: 'AI-powered resume generation from conversation history',
-  author: 'heathen-admin',
-  repository: 'https://github.com/heathen-admin/resume-builder',
+  author: 'J. Michaels',
+  repository: 'https://github.com/sanchez314c/resume-builder',
 } as const;
 
 // =============================================================================

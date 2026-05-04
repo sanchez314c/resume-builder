@@ -294,11 +294,16 @@ if ! command -v npm &>/dev/null; then
 fi
 log_success "npm $(npm --version)"
 
-if ! command -v conda &>/dev/null; then
-    log_warn "Conda not found. Python backend will be skipped."
-    RUN_BACKEND=false
-else
+PYTHON_ENV_TYPE=""
+if command -v conda &>/dev/null; then
     log_success "Conda $(conda --version | cut -d' ' -f2)"
+    PYTHON_ENV_TYPE="conda"
+elif command -v python3 &>/dev/null; then
+    log_success "Python3 $(python3 --version | cut -d' ' -f2)"
+    PYTHON_ENV_TYPE="venv"
+else
+    log_warn "Neither conda nor python3 found. Python backend will be skipped."
+    RUN_BACKEND=false
 fi
 
 if [ ! -d "$PROJECT_ROOT/node_modules" ]; then
@@ -357,17 +362,49 @@ log_success "Sandbox: disabled (Linux compatibility)"
 if [ "$RUN_BACKEND" = true ]; then
     log_header "Starting Python NLP Backend"
 
-    if conda env list 2>/dev/null | grep -q "^$CONDA_ENV_NAME "; then
-        eval "$(conda shell.bash hook)"
-        conda activate "$CONDA_ENV_NAME"
-        log_success "Activated conda env: $CONDA_DEFAULT_ENV"
-    else
-        log_warn "Conda env '$CONDA_ENV_NAME' not found. Run ./scripts/setup-conda.sh"
+    PYTHON_EXEC=""
+    ACTIVATED=false
+
+    if [ "$PYTHON_ENV_TYPE" = "conda" ]; then
+        if conda env list 2>/dev/null | grep -q "^$CONDA_ENV_NAME "; then
+            eval "$(conda shell.bash hook)"
+            conda activate "$CONDA_ENV_NAME"
+            PYTHON_EXEC="python"
+            ACTIVATED=true
+            log_success "Activated conda env: $CONDA_DEFAULT_ENV"
+        else
+            log_warn "Conda env '$CONDA_ENV_NAME' not found. Falling back to .venv..."
+            PYTHON_ENV_TYPE="venv"
+        fi
+    fi
+
+    if [ "$PYTHON_ENV_TYPE" = "venv" ] && [ "$ACTIVATED" = false ]; then
+        VENV_DIR="$PROJECT_ROOT/.venv"
+        if [ ! -d "$VENV_DIR" ]; then
+            log_info "Creating Python virtual environment (.venv)..."
+            python3 -m venv "$VENV_DIR"
+            log_success "Virtual environment created"
+        fi
+        source "$VENV_DIR/bin/activate"
+        PYTHON_EXEC="python"
+        ACTIVATED=true
+        log_success "Activated .venv: $VIRTUAL_ENV"
+
+        if ! "$PYTHON_EXEC" -c "import fastapi" &>/dev/null; then
+            log_info "Installing Python dependencies (first run, may take a few minutes)..."
+            "$PYTHON_EXEC" -m pip install --quiet --upgrade pip
+            "$PYTHON_EXEC" -m pip install --quiet -r "$PYTHON_DIR/requirements.txt"
+            "$PYTHON_EXEC" -m spacy download en_core_web_sm --quiet 2>/dev/null || true
+            log_success "Python dependencies installed"
+        fi
+    fi
+
+    if [ "$ACTIVATED" = false ]; then
+        log_warn "Could not activate a Python environment. Backend skipped."
         RUN_BACKEND=false
     fi
 
     if [ "$RUN_BACKEND" = true ]; then
-        # Build args as an array to avoid word-splitting on spaces
         UVICORN_ARGS=("main:app" "--host" "127.0.0.1" "--port" "$BACKEND_PORT")
         if [ "$DEBUG_MODE" = true ]; then
             UVICORN_ARGS+=("--reload" "--log-level" "debug")
@@ -377,7 +414,7 @@ if [ "$RUN_BACKEND" = true ]; then
 
         cd "$PYTHON_DIR"
         log_info "Starting uvicorn on port $BACKEND_PORT..."
-        python -m uvicorn "${UVICORN_ARGS[@]}" &
+        $PYTHON_EXEC -m uvicorn "${UVICORN_ARGS[@]}" &
         BACKEND_PID=$!
 
         log_info "Waiting for backend to initialize..."

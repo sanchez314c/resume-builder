@@ -205,8 +205,9 @@ function registerFileHandlers(): void {
     if (typeof projectName !== 'string' || projectName.trim().length === 0) {
       throw new Error('Invalid project name: must be a non-empty string');
     }
-    const appPath = app.getAppPath();
-    return fileService.getProjectDataPath(appPath, projectName);
+    // Use userData (e.g. ~/.config/resume-builder) not appPath — appPath is read-only in packaged apps
+    const userDataPath = app.getPath('userData');
+    return fileService.getProjectDataPath(userDataPath, projectName);
   });
 }
 
@@ -331,7 +332,8 @@ function registerNlpHandlers(): void {
           error: new Error('Invalid input: data.messages must be an array'),
         };
       }
-      for (let i = 0; i < Math.min(data.messages.length, 5); i++) {
+      // Validate all messages — partial validation (first-5-only) would miss malformed entries
+      for (let i = 0; i < data.messages.length; i++) {
         const msg = data.messages[i];
         if (typeof msg?.role !== 'string' || typeof msg?.content !== 'string') {
           return {

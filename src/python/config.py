@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # Server Configuration
     host: str = "127.0.0.1"
-    port: int = 8765
+    port: int = 57964  # Must match API_CONFIG.DEFAULT_PORT in src/common/constants.ts
     debug: bool = False
     log_level: str = "INFO"
 

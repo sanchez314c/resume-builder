@@ -8,6 +8,7 @@
 import React from 'react';
 import { Bell, Search, User } from 'lucide-react';
 import { useAppStore } from '../../stores/app-store';
+import { ThemeToggle } from '../ThemeToggle';
 
 const pageNames: Record<string, { title: string; subtitle: string }> = {
   projects: { title: 'Projects', subtitle: 'Manage your resume projects' },
@@ -61,13 +62,24 @@ export const Header: React.FC = () => {
         {/* Divider */}
         <div className="hidden h-8 w-px bg-[rgba(0,210,190,0.15)] md:block" />
 
-        {/* Search */}
-        <button className="flex h-9 w-9 items-center justify-center rounded-lg text-[#94a3b8] transition-all duration-200 hover:bg-white/5 hover:text-[#f1f5f9]">
+        {/* Theme Toggle */}
+        <ThemeToggle showDropdown size="sm" />
+
+        {/* Search — not yet implemented */}
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#94a3b8] opacity-40 cursor-not-allowed"
+          disabled
+          title="Search (coming soon)"
+        >
           <Search className="h-5 w-5" />
         </button>
 
         {/* Notifications */}
-        <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-[#94a3b8] transition-all duration-200 hover:bg-white/5 hover:text-[#f1f5f9]">
+        <button
+          className="relative flex h-9 w-9 items-center justify-center rounded-lg text-[#94a3b8] transition-all duration-200 hover:bg-white/5 hover:text-[#f1f5f9]"
+          title="Notifications"
+          onClick={() => {/* Error badges shown inline via store */}}
+        >
           <Bell className="h-5 w-5" />
           {unreadErrors > 0 && (
             <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#ef4444] text-[10px] font-bold text-white">
@@ -76,8 +88,12 @@ export const Header: React.FC = () => {
           )}
         </button>
 
-        {/* User Avatar */}
-        <button className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(0,210,190,0.1)] text-[#00d2be] transition-all duration-200 hover:bg-[#00d2be] hover:text-white hover:shadow-[0_0_15px_rgba(0,210,190,0.4)]">
+        {/* User Avatar — not yet implemented */}
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(0,210,190,0.1)] text-[#00d2be] opacity-40 cursor-not-allowed"
+          disabled
+          title="User profile (coming soon)"
+        >
           <User className="h-5 w-5" />
         </button>
       </div>

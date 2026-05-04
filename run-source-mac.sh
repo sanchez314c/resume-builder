@@ -163,7 +163,17 @@ log_header "Pre-flight Checks"
 
 command -v node &>/dev/null && log_success "Node.js $(node --version)" || { log_error "Node.js not found"; exit 1; }
 command -v npm &>/dev/null && log_success "npm $(npm --version)" || { log_error "npm not found"; exit 1; }
-command -v conda &>/dev/null && log_success "Conda $(conda --version | cut -d' ' -f2)" || { log_warn "Conda not found. Skipping backend."; RUN_BACKEND=false; }
+PYTHON_ENV_TYPE=""
+if command -v conda &>/dev/null; then
+    log_success "Conda $(conda --version | cut -d' ' -f2)"
+    PYTHON_ENV_TYPE="conda"
+elif command -v python3 &>/dev/null; then
+    log_success "Python3 $(python3 --version | cut -d' ' -f2)"
+    PYTHON_ENV_TYPE="venv"
+else
+    log_warn "Neither conda nor python3 found. Skipping backend."
+    RUN_BACKEND=false
+fi
 
 [ ! -d "$PROJECT_ROOT/node_modules" ] && { log_warn "Installing node_modules..."; cd "$PROJECT_ROOT" && npm install; }
 log_success "Node dependencies ready"
@@ -184,19 +194,53 @@ done
 if [ "$RUN_BACKEND" = true ]; then
     log_header "Starting Python NLP Backend"
 
-    if conda env list 2>/dev/null | grep -q "^$CONDA_ENV_NAME "; then
-        eval "$(conda shell.bash hook)"
-        conda activate "$CONDA_ENV_NAME"
-        log_success "Conda env: $CONDA_DEFAULT_ENV"
-    else
-        log_warn "Conda env '$CONDA_ENV_NAME' not found. Run ./scripts/setup-conda.sh"; RUN_BACKEND=false
+    PYTHON_EXEC=""
+    ACTIVATED=false
+
+    if [ "$PYTHON_ENV_TYPE" = "conda" ]; then
+        if conda env list 2>/dev/null | grep -q "^$CONDA_ENV_NAME "; then
+            eval "$(conda shell.bash hook)"
+            conda activate "$CONDA_ENV_NAME"
+            PYTHON_EXEC="python"
+            ACTIVATED=true
+            log_success "Conda env: $CONDA_DEFAULT_ENV"
+        else
+            log_warn "Conda env '$CONDA_ENV_NAME' not found. Falling back to .venv..."
+            PYTHON_ENV_TYPE="venv"
+        fi
+    fi
+
+    if [ "$PYTHON_ENV_TYPE" = "venv" ] && [ "$ACTIVATED" = false ]; then
+        VENV_DIR="$PROJECT_ROOT/.venv"
+        if [ ! -d "$VENV_DIR" ]; then
+            log_info "Creating Python virtual environment (.venv)..."
+            python3 -m venv "$VENV_DIR"
+            log_success "Virtual environment created"
+        fi
+        source "$VENV_DIR/bin/activate"
+        PYTHON_EXEC="python"
+        ACTIVATED=true
+        log_success "Activated .venv: $VIRTUAL_ENV"
+
+        if ! "$PYTHON_EXEC" -c "import fastapi" &>/dev/null; then
+            log_info "Installing Python dependencies (first run, may take a few minutes)..."
+            "$PYTHON_EXEC" -m pip install --quiet --upgrade pip
+            "$PYTHON_EXEC" -m pip install --quiet -r "$PYTHON_DIR/requirements.txt"
+            "$PYTHON_EXEC" -m spacy download en_core_web_sm --quiet 2>/dev/null || true
+            log_success "Python dependencies installed"
+        fi
+    fi
+
+    if [ "$ACTIVATED" = false ]; then
+        log_warn "Could not activate a Python environment. Backend skipped."
+        RUN_BACKEND=false
     fi
 
     if [ "$RUN_BACKEND" = true ]; then
-        ARGS="main:app --host 127.0.0.1 --port $BACKEND_PORT"
-        [ "$DEBUG_MODE" = true ] && ARGS="$ARGS --reload --log-level debug" || ARGS="$ARGS --log-level info"
+        UVICORN_ARGS=("main:app" "--host" "127.0.0.1" "--port" "$BACKEND_PORT")
+        [ "$DEBUG_MODE" = true ] && UVICORN_ARGS+=("--reload" "--log-level" "debug") || UVICORN_ARGS+=("--log-level" "info")
         cd "$PYTHON_DIR"
-        python -m uvicorn $ARGS &
+        $PYTHON_EXEC -m uvicorn "${UVICORN_ARGS[@]}" &
         BACKEND_PID=$!
         log_info "Waiting for backend..."
         for i in {1..30}; do

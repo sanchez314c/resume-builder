@@ -7,6 +7,94 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased] — Repo Pipeline Step 9 Neo-Noir + AboutModal — 2026-04-17
+
+### Added
+
+- `src/renderer/components/layout/AboutModal.tsx`: Standalone Neo-Noir Glass Monitor AboutModal
+  component. Props `{ isOpen: boolean; onClose: () => void }`. Features: Lucide `FileText` 64px
+  icon, teal mono version label, description, "MIT License | J. Michaels" footer, GitHub pill badge
+  (openExternal IPC), email pill badge (`jason@speedheathens.com`), overlay click + X button close.
+
+### Changed
+
+- `src/renderer/components/layout/TitleBar.tsx`: Removed inline `AboutModal` definition. Now
+  accepts `onAboutClick?: () => void` prop; About ⓘ button calls it instead of managing local state.
+- `src/renderer/components/layout/MainLayout.tsx`: Added `useState<boolean>` for `aboutOpen`.
+  Passes `onAboutClick` to `TitleBar`; renders `<AboutModal>` at layout root so modal is
+  available app-wide.
+- `src/renderer/components/layout/index.ts`: Added `AboutModal` barrel export.
+
+### Verified
+
+- Neo-Noir design tokens intact: teal accent (#00d2be/#00e5cc), glass system, layered shadows in
+  `tailwind.config.js` + `src/renderer/styles/themes.css`.
+- AppShell structure confirmed: TitleBar → [Sidebar | (main content)] → StatusBar.
+- `frame: false`, `transparent: true`, `hasShadow: false` at `src/main/window.ts:144-147`.
+- `npx tsc --noEmit` exit 0. `npm run build` exit 0.
+
+---
+
+## [Unreleased] — Repo Pipeline Step 5 audit pass — 2026-04-17
+
+### Security (HIGH)
+
+- **`src/main/ipc-handlers.ts:208`**: Fixed `FILE_GET_DATA_PATH` handler using `app.getAppPath()`
+  to derive the project data directory. `app.getAppPath()` resolves to the read-only ASAR
+  in packaged builds — all project data writes would silently fail. Changed to
+  `app.getPath('userData')` (`~/.config/resume-builder` on Linux) which is writable in
+  both dev and packaged modes.
+
+- **`src/main/file-service.ts`**: Added `BLOCKED_PATH_PREFIXES` (14 Linux system directory
+  prefixes) and `checkBlockedPath()` helper. Applied to `readFile()`, `saveFile()`,
+  `copyFile()`, and `ensureDir()` after the existing `isAbsolute()` check. Closes the gap
+  where a compromised renderer could call `window.api.file.read('/etc/shadow')` or write
+  to system directories. Mirrors the protection `_validate_file_path()` already provided
+  on the Python sidecar side.
+
+### Security (MEDIUM)
+
+- **`src/main/ipc-handlers.ts:334`**: Fixed NLP IPC `nlp:analyze` message validation
+  that only checked the first 5 messages (`Math.min(data.messages.length, 5)`). Messages
+  at index 6+ with invalid types bypassed the IPC gate. Changed loop bound to validate
+  all messages.
+
+- **`src/python/main.py`**: Added 10 MB file size guard to the `/analyze-file` upload
+  endpoint — `len(content) > _MAX_FILE_SIZE_BYTES` check immediately after `await file.read()`.
+  Parity with `/analyze-file-path` which already enforced this limit. Also moved
+  `_MAX_FILE_SIZE_BYTES` constant above both endpoints (removed duplicate definition).
+
+### Security (LOW)
+
+- **`src/python/main.py`** (6 endpoints): Sanitized `detail=str(e)` in all outer
+  `except Exception` blocks in `/analyze`, `/extract-skills`, `/analyze-file`,
+  `/analyze-file-path`, `/match-jobs`, `/enhance`. Was leaking internal error strings
+  (model paths, spaCy/Torch exception details) to HTTP callers. Changed to descriptive but
+  opaque messages; underlying errors still logged via `logger.error()`.
+
+- **`src/python/main.py`**: Removed `.docx` from `_ALLOWED_EXTENSIONS`. There is no DOCX
+  parser in `extract_text_from_file()` — DOCX files fell through to raw UTF-8 decode of
+  ZIP binary, raising `UnicodeDecodeError` → HTTP 400 "Unsupported file type: .docx"
+  while the allowlist implied DOCX was supported. Error message now accurately reflects
+  supported types.
+
+- **`src/python/config.py:22`**: Updated default `port` from `8765` to `57964` to match
+  `API_CONFIG.DEFAULT_PORT` in TypeScript constants and `run-source-linux.sh`. Direct
+  invocation of `python main.py` without CLI overrides now binds to the correct port.
+
+- **`src/main/python-bridge.ts:443`**: Fixed health check timer that early-returned via
+  `if (!this.isRunning()) return` — `isRunning()` always returns `false` for external
+  backends (not spawned by the bridge), meaning the health check never ran for them.
+  Changed to always run the health check; distinguishes spawned process (stop + restart)
+  from external backend (emit `'error'`, no restart attempt).
+
+### Documentation
+
+- `AUDIT_REPORT.md` — Rewritten to cover both audit passes. All Step 5 findings documented
+  with severity, root cause, fix description, and file:line references.
+
+---
+
 ## [1.0.5] - 2026-04-10 — Repo Pipeline Final Pass
 
 ### Fixed

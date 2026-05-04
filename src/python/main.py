@@ -110,11 +110,14 @@ app = FastAPI(
 
 # CORS configuration for Electron — restrict to localhost origins only
 # The sidecar only serves the local Electron app; wildcard origins are not acceptable
+_FRONTEND_PORT = int(os.environ.get("VITE_DEV_SERVER_PORT", "63263"))
 _ALLOWED_ORIGINS = [
     "http://127.0.0.1",
     "http://localhost",
     f"http://127.0.0.1:{settings.port}",
     f"http://localhost:{settings.port}",
+    f"http://localhost:{_FRONTEND_PORT}",
+    f"http://127.0.0.1:{_FRONTEND_PORT}",
     "file://",
 ]
 
@@ -261,7 +264,7 @@ async def analyze(request: AnalyzeRequest) -> AnalyzeResponse:
 
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Analysis failed")
 
 
 @app.post("/extract-skills", response_model=SkillExtractionResponse)
@@ -295,12 +298,15 @@ async def extract_skills(request: SkillExtractionRequest) -> SkillExtractionResp
 
     except Exception as e:
         logger.error(f"Skill extraction failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Skill extraction failed")
 
 
 # =============================================================================
 # File Import Endpoint (PDF, MD, TXT, CSV)
 # =============================================================================
+
+# Max file size for uploads and path-based reads (10 MB)
+_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
 
 
 def extract_text_from_file(content: bytes, filename: str) -> str:
@@ -374,6 +380,13 @@ async def analyze_file(
         content = await file.read()
         filename = file.filename or "unknown.txt"
 
+        # Guard against oversized uploads (same 10 MB limit as /analyze-file-path)
+        if len(content) > _MAX_FILE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File exceeds maximum allowed size of {_MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB",
+            )
+
         logger.info(f"Analyzing file: {filename} ({len(content)} bytes)")
 
         # Extract text from file
@@ -430,7 +443,7 @@ async def analyze_file(
         raise
     except Exception as e:
         logger.error(f"File analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="File analysis failed")
 
 
 class FilePathRequest(BaseModel):
@@ -441,10 +454,8 @@ class FilePathRequest(BaseModel):
 
 
 # Allowed file extensions for /analyze-file-path endpoint
-_ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md", ".csv", ".docx"}
-
-# Max file size to read via path endpoint (10 MB)
-_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+# .docx excluded: no DOCX parser — raw binary decode would fail with UnicodeDecodeError
+_ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md", ".csv"}
 
 
 def _validate_file_path(file_path: str) -> str:
@@ -589,7 +600,7 @@ async def analyze_file_path(request: FilePathRequest):
         raise
     except Exception as e:
         logger.error(f"File path analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="File analysis failed")
 
 
 @app.post("/match-jobs", response_model=JobMatchResponse)
@@ -624,7 +635,7 @@ async def match_jobs(request: JobMatchRequest) -> JobMatchResponse:
 
     except Exception as e:
         logger.error(f"Job matching failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Job matching failed")
 
 
 @app.post("/enhance", response_model=EnhanceResponse)
@@ -669,7 +680,7 @@ async def enhance_content(request: EnhanceRequest) -> EnhanceResponse:
 
     except Exception as e:
         logger.error(f"Content enhancement failed: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Content enhancement failed")
 
 
 # =============================================================================

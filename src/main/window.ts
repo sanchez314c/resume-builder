@@ -293,14 +293,15 @@ function setupWindowEvents(window: BrowserWindow): void {
  * Loads the application content
  */
 function loadContent(window: BrowserWindow): void {
-  if (app.isPackaged) {
-    // Production: Load from dist
+  // Prefer Vite dev server when its URL is in env (electron-vite dev sets this).
+  // Otherwise load the built renderer from dist — handles both packaged builds
+  // AND running compiled output from source via `npm run start`.
+  const devUrl = process.env.ELECTRON_RENDERER_URL || process.env.VITE_DEV_SERVER_URL;
+  if (devUrl) {
+    window.loadURL(devUrl);
+  } else {
     const indexPath = path.join(__dirname, '..', 'renderer', 'index.html');
     window.loadFile(indexPath);
-  } else {
-    // Development: Load from Vite dev server
-    const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:63263';
-    window.loadURL(devServerUrl);
   }
 }
 
@@ -308,10 +309,8 @@ function loadContent(window: BrowserWindow): void {
  * Gets the application URL for navigation checks
  */
 function getAppUrl(): string {
-  if (app.isPackaged) {
-    return 'file://';
-  }
-  return process.env.VITE_DEV_SERVER_URL || 'http://localhost:63263';
+  const devUrl = process.env.ELECTRON_RENDERER_URL || process.env.VITE_DEV_SERVER_URL;
+  return devUrl || 'file://';
 }
 
 /**
